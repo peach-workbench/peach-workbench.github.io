@@ -1,0 +1,14 @@
+{
+  "name": "桃子工作台",
+  "short_name": "桃子工作台",
+  "description": "桃子个人工作台 · 计划 / 二创 / 记账 / 学习",
+  "start_url": ".",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#ffffff",
+  "theme_color": "#ff8266",
+  "icons": [
+    { "src": "icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any" },
+    { "src": "icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "maskable" }
+  ]
+}
