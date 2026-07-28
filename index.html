@@ -1,0 +1,443 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <meta name="theme-color" content="#ff8266" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+  <meta name="apple-mobile-web-app-title" content="桃子工作台" />
+  <link rel="manifest" href="manifest.json" />
+  <link rel="icon" type="image/svg+xml" href="icon.svg" />
+  <link rel="apple-touch-icon" href="icon.svg" />
+  <title>桃子工作台</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <div class="app">
+    <!-- ===================== 侧边栏 ===================== -->
+    <aside class="sidebar">
+      <div class="brand">
+        <div class="brand-logo" id="brandPeach"></div>
+        <div>
+          <div class="brand-name">桃子工作台</div>
+          <div class="brand-sub">个人工作台</div>
+        </div>
+      </div>
+      <nav class="nav">
+        <button class="nav-item" data-view="monthly"><span class="nav-icon" data-peach="1"></span><span class="nav-label">每月工作计划</span></button>
+        <button class="nav-item" data-view="daily"><span class="nav-icon" data-peach="2"></span><span class="nav-label">每日工作计划</span></button>
+        <button class="nav-item" data-view="recreate"><span class="nav-icon" data-peach="3"></span><span class="nav-label">爆款视频二创</span></button>
+        <button class="nav-item" data-view="xhs"><span class="nav-icon" data-peach="4"></span><span class="nav-label">小红书每日推文</span></button>
+        <button class="nav-item" data-view="study"><span class="nav-icon" data-peach="5"></span><span class="nav-label">学习计划</span></button>
+        <button class="nav-item" data-view="calendar"><span class="nav-icon" data-peach="6"></span><span class="nav-label">日历 · 记账</span></button>
+        <button class="nav-item" data-view="review"><span class="nav-icon" data-peach="7"></span><span class="nav-label">每周直播复盘</span></button>
+        <button class="nav-item" data-view="insp"><span class="nav-icon" data-peach="8"></span><span class="nav-label">灵感推荐</span></button>
+        <button class="nav-item" data-view="mood"><span class="nav-icon" data-peach="9"></span><span class="nav-label">心情日记</span></button>
+      </nav>
+      <div class="side-todo">
+        <div class="side-todo-title" id="sideTodoTitle">今日待办 <span id="sideTodoCount"></span></div>
+        <ul class="side-todo-list" id="sideTodoList"></ul>
+      </div>
+      <div class="sidebar-foot">
+        <div class="today-chip" id="todayChip">今天</div>
+      </div>
+    </aside>
+
+    <!-- ===================== 主区 ===================== -->
+    <main class="main">
+      <div class="topbar">
+        <div class="page-title" id="pageTitle">桃子工作台</div>
+        <div class="topbar-right">
+          <div class="mode-tag">本地留存 · 每日更新</div>
+          <div class="topbar-actions">
+            <button class="btn ghost small" id="btnExport" title="把数据导出成文件备份">导出备份</button>
+            <button class="btn ghost small" id="btnImport" title="从备份文件恢复数据">导入备份</button>
+            <input type="file" id="importFile" accept="application/json,.json" style="display:none" />
+          </div>
+        </div>
+      </div>
+
+      <!-- 0. 首页工作台（卡片式 Dashboard） -->
+      <section class="view" id="view-home">
+        <div class="home-greet">
+          <div class="home-avatar" id="homeAvatar"></div>
+          <div class="home-greet-text">
+            <div class="home-hi" id="homeHi">桃子好 🍑 <span class="home-edit" id="homeEditName" title="点击修改昵称">✎</span></div>
+            <div class="home-date" id="homeDate"></div>
+          </div>
+          <div class="home-quote">今天祝桃子开心有钱花 🍑</div>
+        </div>
+
+        <div class="home-overview">
+          <div class="ov-card" data-go="daily">
+            <div class="ov-num" id="ovTodo">0/0</div>
+            <div class="ov-label">今日待办</div>
+          </div>
+          <div class="ov-card" data-go="mood">
+            <div class="ov-num" id="ovMood">—</div>
+            <div class="ov-label">今日心情</div>
+          </div>
+          <div class="ov-card" data-go="calendar">
+            <div class="ov-num" id="ovBalance">¥0</div>
+            <div class="ov-label">本月结余</div>
+          </div>
+        </div>
+
+        <div class="home-grid" id="homeGrid"></div>
+      </section>
+
+      <!-- 1. 每月工作计划 -->
+      <section class="view" id="view-monthly">
+        <div class="card progress-card">
+          <div class="progress-head">
+            <div>
+              <div class="card-title">每月计划完成进度</div>
+              <div class="progress-count" id="monthlyProgressText">已经完成 0/0</div>
+            </div>
+            <div class="progress-bar"><span id="monthlyProgressBar"></span></div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-title">每月工作计划</div>
+          <p class="card-hint">每月固定目标，完成后勾选；支持自由新增与删除（长期保留，按月累积）。</p>
+          <ul class="task-list" id="monthlyList"></ul>
+          <div class="add-row">
+            <input id="monthlyAdd" placeholder="添加一条每月目标，如：本月上新 2 款浮山雲限定" />
+            <button class="btn peach" id="monthlyAddBtn">添加</button>
+          </div>
+        </div>
+      </section>
+
+      <!-- 2. 每日工作计划（浮山雲选题） -->
+      <section class="view" id="view-daily">
+        <div class="card">
+          <div class="card-title">今日浮山雲选题 · 对标古茗视频号</div>
+          <p class="card-hint">系统每日自动生成今日选题（对标古茗视频号），可随时修改后保存；下方按时间展示历史选题。</p>
+          <div class="insp-box">
+            <div class="insp-meta"><span class="tag" id="dailyTopicTag">今日选题</span></div>
+            <textarea id="dailyTopic" rows="9"></textarea>
+            <div class="insp-actions"><button class="btn peach" id="dailyTopicSave">保存选题</button></div>
+          </div>
+          <ul class="history-list" id="dailyTopicHistory"></ul>
+        </div>
+        <div class="card progress-card">
+          <div class="progress-head">
+            <div>
+              <div class="card-title">今日待办完成进度</div>
+              <div class="progress-count" id="dailyProgressText">已经完成 0/0</div>
+            </div>
+            <div class="progress-bar"><span id="dailyProgressBar"></span></div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-title">每日待办清单</div>
+          <p class="card-hint">预设任务每天自动重置（打勾后次日归零）；自定义任务长期保留。勾选即变灰。</p>
+          <ul class="task-list" id="dailyList"></ul>
+          <div class="add-row">
+            <input id="dailyAdd" placeholder="添加一条自定义待办，如：联系供应商确认鲜果到货" />
+            <button class="btn peach" id="dailyAddBtn">添加</button>
+          </div>
+        </div>
+      </section>
+
+      <!-- 3. 爆款视频二创（饮品 / 各类） -->
+      <section class="view" id="view-recreate">
+        <div class="card">
+          <div class="card-title">爆款视频二创</div>
+          <p class="card-hint">含「灵感拆解」「视频结构」与「可二创拍摄脚本」，自动生成、可编辑、可另存历史。切换饮品 / 各类赛道。</p>
+          <div class="tabs">
+            <button class="tab active" data-rec="bev">饮品爆款二创</button>
+            <button class="tab" data-rec="var">各类爆款二创</button>
+          </div>
+        </div>
+
+        <!-- 饮品 -->
+        <div class="rec-pane" id="rec-bev">
+          <div class="card">
+            <div class="gen-controls">
+              <label>主题<input id="bevTheme" placeholder="如：荔枝冰萃" /></label>
+              <label>平台<select id="bevPlatform"><option>抖音</option><option>视频号</option><option>小红书</option><option>快手</option></select></label>
+              <button class="btn ghost" id="bevRegen">换一批灵感</button>
+            </div>
+            <div class="block-title">灵感拆解</div>
+            <div class="breakdown" id="bevBreakdown"></div>
+            <div class="block-title">视频结构（分镜）</div>
+            <div class="shots" id="bevShots"></div>
+            <div class="block-title">可二创拍摄脚本</div>
+            <textarea id="bevScript" rows="7"></textarea>
+            <div class="insp-actions"><button class="btn peach" id="bevSave">保存方案</button></div>
+          </div>
+          <div class="card">
+            <div class="card-title">今日灵感便签</div>
+            <p class="card-hint">自动生成、可修改；保存后进入历史灵感。</p>
+            <div class="insp-box">
+              <textarea id="bevNote" rows="4" placeholder="写下你对这条饮品二创的奇思妙想…"></textarea>
+              <div class="insp-actions"><button class="btn ghost" id="bevNoteSave">保存灵感</button></div>
+            </div>
+            <ul class="history-list" id="bevNoteHistory"></ul>
+          </div>
+        </div>
+
+        <!-- 各类 -->
+        <div class="rec-pane" id="rec-var" style="display:none">
+          <div class="card">
+            <div class="gen-controls">
+              <label>赛道<select id="varCat"><option>美食</option><option>穿搭</option><option>美妆</option><option>家居</option><option>母婴</option><option>数码</option><option>旅行</option></select></label>
+              <label>主题<input id="varTheme" placeholder="如：夏日通勤穿搭" /></label>
+              <label>平台<select id="varPlatform"><option>抖音</option><option>视频号</option><option>小红书</option><option>快手</option></select></label>
+              <button class="btn ghost" id="varRegen">换一批灵感</button>
+            </div>
+            <div class="block-title">灵感拆解</div>
+            <div class="breakdown" id="varBreakdown"></div>
+            <div class="block-title">视频结构（分镜）</div>
+            <div class="shots" id="varShots"></div>
+            <div class="block-title">可二创拍摄脚本</div>
+            <textarea id="varScript" rows="7"></textarea>
+            <div class="insp-actions"><button class="btn peach" id="varSave">保存方案</button></div>
+          </div>
+          <div class="card">
+            <div class="card-title">今日灵感便签</div>
+            <p class="card-hint">自动生成、可修改；保存后进入历史灵感。</p>
+            <div class="insp-box">
+              <textarea id="varNote" rows="4" placeholder="写下你对这条二创的奇思妙想…"></textarea>
+              <div class="insp-actions"><button class="btn ghost" id="varNoteSave">保存灵感</button></div>
+            </div>
+            <ul class="history-list" id="varNoteHistory"></ul>
+          </div>
+        </div>
+      </section>
+
+      <!-- 4. 小红书每日推文 -->
+      <section class="view" id="view-xhs">
+        <div class="card">
+          <div class="card-title">小红书 · 皮扣更换丝巾 每日推文</div>
+          <p class="card-hint">产品卖点：皮扣设计自由切换丝巾，一扣多搭。每日自动轮换角度生成推文，可编辑。</p>
+          <div class="gen-controls">
+            <label>角度<select id="xhsAngle"><option>通勤</option><option>约会</option><option>旅行</option><option>送礼</option><option>性价比</option><option>宝妈</option></select></label>
+            <button class="btn ghost" id="xhsRegen">换一个角度</button>
+          </div>
+          <div class="xhs-block">
+            <div class="block-title">标题</div>
+            <textarea id="xhsTitle" rows="2" class="xhs-title"></textarea>
+            <div class="block-title">正文</div>
+            <textarea id="xhsBody" rows="6"></textarea>
+            <div class="block-title">标签</div>
+            <textarea id="xhsTags" rows="2" class="xhs-tags"></textarea>
+            <div class="insp-actions"><button class="btn peach" id="xhsSave">保存推文</button></div>
+          </div>
+          <ul class="history-list" id="xhsHistory"></ul>
+        </div>
+        <div class="card">
+          <div class="card-title">今日灵感便签</div>
+          <p class="card-hint">自动生成、可修改；保存后进入历史灵感。</p>
+          <div class="insp-box">
+            <textarea id="xhsNote" rows="4" placeholder="写下这条推文的延伸灵感…"></textarea>
+            <div class="insp-actions"><button class="btn ghost" id="xhsNoteSave">保存灵感</button></div>
+          </div>
+          <ul class="history-list" id="xhsNoteHistory"></ul>
+        </div>
+      </section>
+
+      <!-- 5. 学习计划 -->
+      <section class="view" id="view-study">
+        <div class="card progress-card">
+          <div class="ring-card">
+            <div class="ring-wrap">
+              <svg class="ring" viewBox="0 0 120 120" width="160" height="160">
+                <circle class="ring-bg" cx="60" cy="60" r="52"></circle>
+                <circle class="ring-fg" id="ringFg" cx="60" cy="60" r="52"></circle>
+              </svg>
+              <div class="ring-center"><div class="ring-pct" id="ringPct">0%</div><div class="ring-sub" id="ringSub">今日目标 0/70 分钟</div></div>
+            </div>
+            <div class="ring-info">
+              <div class="card-title">今日学习目标</div>
+              <p class="card-hint">多邻国 10 分钟 · 帕梅拉/运动 60 分钟，合计 70 分钟。圆环按秒实时累计。</p>
+              <ul class="task-list compact" id="exerciseList"></ul>
+            </div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-title">倒计时计时器</div>
+          <div class="timer">
+            <div class="timer-display" id="timerDisplay">60:00</div>
+            <div class="timer-set">
+              <label>设定分钟<input id="timerSet" type="number" value="60" min="1" /></label>
+              <button class="btn ghost small" id="timerApply">设置</button>
+            </div>
+            <div class="timer-btns">
+              <button class="btn peach" id="timerStart">开始</button>
+              <button class="btn ghost" id="timerPause">暂停</button>
+              <button class="btn ghost" id="timerReset">重置</button>
+            </div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-title">每日重点新闻（选题参考）</div>
+          <p class="card-hint">每日自动更新选题方向（内置库按日轮换；如需真实联网新闻可后续接入 API）。</p>
+          <div class="insp-box"><div id="studyNews" class="gen-note"></div></div>
+          <div class="insp-actions"><button class="btn ghost small" id="newsRegen">换一批</button></div>
+        </div>
+        <div class="card read-module">
+          <div class="read-head">
+            <div>
+              <div class="read-title">每日阅读 30 分钟</div>
+              <div class="read-time" id="readTime">21:00 – 21:30</div>
+            </div>
+            <div class="read-med">
+              <button class="med-btn active" data-med="paper">纸质书</button>
+              <button class="med-btn" data-med="ebook">电子书</button>
+              <button class="med-btn" data-med="radio">电台</button>
+            </div>
+          </div>
+          <div class="read-stats">
+            <div class="read-stat"><div class="rs-num" id="readStreak">0</div><div class="rs-label">连续天数</div></div>
+            <div class="read-stat"><div class="rs-num" id="readMinutes">0</div><div class="rs-label">累计分钟</div></div>
+            <div class="read-stat"><div class="rs-num" id="readCount">0</div><div class="rs-label">已读篇数</div></div>
+          </div>
+          <div class="read-timer">
+            <div class="read-timer-display" id="readTimerDisplay">30:00</div>
+            <div class="read-timer-btns">
+              <button class="btn peach small" id="readStart">开始</button>
+              <button class="btn ghost small" id="readPause">暂停</button>
+              <button class="btn ghost small" id="readReset">重置</button>
+            </div>
+          </div>
+          <div class="block-title">今日跟读短文</div>
+          <div class="reader" id="studyReader"></div>
+          <div class="insp-actions"><button class="btn ghost small" id="readRegen">换一篇</button></div>
+          <div class="block-title">推荐书单</div>
+          <div class="book-list" id="bookList"></div>
+        </div>
+        <div class="card">
+          <div class="card-title">奶茶直播话术词汇积累</div>
+          <p class="card-hint">每日推荐一组奶茶饮品直播话术词库，可背诵、可复用。</p>
+          <div class="insp-box"><div id="studyVocab" class="gen-note"></div></div>
+          <div class="insp-actions"><button class="btn ghost small" id="vocabRegen">换一组</button></div>
+        </div>
+      </section>
+
+      <!-- 6. 日历 · 记账 -->
+      <section class="view" id="view-calendar">
+        <div class="card">
+          <div class="cal-head">
+            <button class="btn ghost small" id="calPrev">‹</button>
+            <div style="flex:1">
+              <div class="cal-title" id="calTitle">—</div>
+              <div class="cal-monthsum" id="calMonthSum"></div>
+            </div>
+            <button class="btn ghost small" id="calNext">›</button>
+            <button class="btn peach small" id="calToday">今天</button>
+          </div>
+          <div class="cal-week"><span>一</span><span>二</span><span>三</span><span>四</span><span>五</span><span>六</span><span>日</span></div>
+          <div class="cal-grid" id="calGrid"></div>
+        </div>
+        <div class="card" id="calDayCard">
+          <div class="card-title" id="calSelDate">选择日期</div>
+          <div class="block-title">当日笔记 / 日记</div>
+          <textarea id="calNote" rows="4" placeholder="记录这一天的内容、灵感或心情…"></textarea>
+          <div class="insp-actions"><button class="btn ghost" id="calNoteSave">保存当日内容</button></div>
+          <div class="block-title">记账</div>
+          <div class="bk-summary" id="bkSummary"></div>
+          <div class="add-row">
+            <select id="bkType" style="max-width:110px"><option value="out">支出</option><option value="in">收入</option></select>
+            <input id="bkAmount" type="number" placeholder="金额" style="max-width:120px" />
+            <select id="bkCat" style="max-width:120px"><option>餐饮</option><option>交通</option><option>购物</option><option>居住</option><option>娱乐</option><option>医疗</option><option>工资</option><option>其他</option></select>
+            <input id="bkNote" placeholder="备注" />
+            <button class="btn peach" id="bkAdd">记一笔</button>
+          </div>
+          <ul class="bk-list" id="bkList"></ul>
+        </div>
+      </section>
+
+      <!-- 7. 每周直播复盘 -->
+      <section class="view" id="view-review">
+        <div class="card">
+          <div class="card-title">每周直播复盘</div>
+          <p class="card-hint">填写本周直播数据，系统根据数据/货盘给出优化建议。数据仅本地留存。</p>
+          <div class="gen-controls">
+            <label>第几周<input id="revWeek" placeholder="如：2026-W31" /></label>
+            <label>直播场次<input id="revSessions" type="number" placeholder="如：5" /></label>
+            <label>场均观看<input id="revView" type="number" placeholder="如：1200" /></label>
+            <label>本周 GMV<input id="revGmv" type="number" placeholder="如：35000" /></label>
+          </div>
+          <div class="gen-controls">
+            <label>客单价<input id="revAov" type="number" placeholder="如：58" /></label>
+            <label>新增粉丝<input id="revFans" type="number" placeholder="如：320" /></label>
+            <label>平均停留(秒)<input id="revStay" type="number" placeholder="如：95" /></label>
+            <label>主推产品<input id="revMain" placeholder="如：浮山雲·荔枝冰萃" /></label>
+          </div>
+          <label style="display:block;font-size:13px;font-weight:600;color:var(--muted);margin:6px 0">遇到的问题 / 备注
+            <textarea id="revNote" rows="3" placeholder="如：开场留人弱、中段转化低、福利节奏乱…"></textarea>
+          </label>
+          <div class="insp-actions"><button class="btn peach" id="revGen">生成复盘</button></div>
+        </div>
+        <div class="card" id="revResultCard" style="display:none">
+          <div class="card-title">本周优化建议</div>
+          <div class="insp-box"><div id="revResult" class="gen-note"></div></div>
+          <div class="insp-actions"><button class="btn ghost" id="revSave">保存本周复盘</button></div>
+        </div>
+        <div class="card">
+          <div class="card-title">历史复盘</div>
+          <ul class="history-list" id="revHistory"></ul>
+        </div>
+      </section>
+
+      <!-- 8. 灵感推荐 -->
+      <section class="view" id="view-insp">
+        <div class="card">
+          <div class="card-title">灵感推荐 · 优化我的奇思妙想</div>
+          <p class="card-hint">每日自动给你一个奇思妙想种子；也可以写下你自己的点子，点「优化灵感」让它更完整、更可拍。</p>
+          <div class="insp-box">
+            <div class="insp-meta"><span class="tag" id="inspSeedTag">今日灵感种子</span></div>
+            <div id="inspSeed" class="gen-note"></div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-title">写下你的奇思妙想</div>
+          <textarea id="inspIdea" rows="4" placeholder="例如：把浮山雲做成茂名人的『降温仪式感』…"></textarea>
+          <div class="insp-actions"><button class="btn peach" id="inspOptimize">优化灵感</button></div>
+          <div class="block-title">优化结果</div>
+          <textarea id="inspResult" rows="7" placeholder="优化后的灵感会显示在这里，可继续修改…"></textarea>
+          <div class="insp-actions"><button class="btn ghost" id="inspSave">保存这条灵感</button></div>
+        </div>
+        <ul class="history-list" id="inspHistory"></ul>
+      </section>
+
+      <!-- 9. 心情日记 -->
+      <section class="view" id="view-mood">
+        <div class="card">
+          <div class="card-title">心情日记</div>
+          <p class="card-hint">记录每日心情，选一个表情再加文字描述；每天一条，可修改。</p>
+          <div class="mood-emojis" id="moodEmojis"></div>
+          <textarea id="moodText" rows="4" placeholder="今天发生了什么？为什么是这种心情…"></textarea>
+          <div class="insp-actions"><button class="btn peach" id="moodSave">保存今日心情</button></div>
+        </div>
+        <ul class="history-list" id="moodHistory"></ul>
+      </section>
+    </main>
+  </div>
+
+  <!-- 弹窗 -->
+  <div class="modal-mask" id="modalMask">
+    <div class="modal">
+      <div class="modal-peach" id="modalPeach"></div>
+      <div class="modal-title" id="modalTitle"></div>
+      <div class="modal-text" id="modalText"></div>
+      <button class="btn peach" id="modalClose">好的</button>
+    </div>
+  </div>
+
+  <!-- 全屏模式 -->
+  <div class="fs-mask" id="fsMask">
+    <div class="fs-bar">
+      <div class="fs-title" id="fsTitle"></div>
+      <button class="fs-close" id="fsClose" title="退出全屏">✕</button>
+    </div>
+    <div class="fs-wrap" id="fsWrap"></div>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>
